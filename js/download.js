@@ -113,14 +113,22 @@ $(function(){
                     break;
                 }
                 document.dispatchEvent(new KeyboardEvent("keydown",{
-                    keyCode: 39
+                    keyCode: 39,
+                    which: 39,
+                    key: "ArrowRight",
+                    code: "ArrowRight",
+                    bubbles: true
                 }));
                 click_cnt++;
             }
 
             for(let i = 0; i < click_cnt; i++){
                 document.dispatchEvent(new KeyboardEvent("keydown",{
-                    keyCode: 37
+                    keyCode: 37,
+                    which: 37,
+                    key: "ArrowLeft",
+                    code: "ArrowLeft",
+                    bubbles: true
                 }));
             }
 
@@ -176,7 +184,11 @@ $(function(){
                             break;
                         }
                         document.dispatchEvent(new KeyboardEvent("keydown",{
-                            keyCode: 39
+                            keyCode: 39,
+                            which: 39,
+                            key: "ArrowRight",
+                            code: "ArrowRight",
+                            bubbles: true
                         }));
                         cnt++;
                         await new Promise(function(r){ setTimeout(r, 150); });

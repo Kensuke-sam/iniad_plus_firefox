@@ -14,12 +14,24 @@ async function fetchAsDataUrl(url){
     });
 }
 
-api.runtime.onMessage.addListener(function(message, sender, sendResponse){
+async function handleMessage(message){
     if(!message || message.type !== "iniadpp:fetchImage" || !message.url){
+        return undefined;
+    }
+    try {
+        const dataUrl = await fetchAsDataUrl(message.url);
+        return { ok: true, dataUrl: dataUrl };
+    } catch(err){
+        return { ok: false, error: String(err && err.message || err) };
+    }
+}
+
+api.runtime.onMessage.addListener(function(message, sender, sendResponse){
+    if(!message || message.type !== "iniadpp:fetchImage"){
         return false;
     }
-    fetchAsDataUrl(message.url)
-        .then(function(dataUrl){ sendResponse({ ok: true, dataUrl: dataUrl }); })
-        .catch(function(err){ sendResponse({ ok: false, error: String(err && err.message || err) }); });
+    handleMessage(message).then(sendResponse).catch(function(err){
+        sendResponse({ ok: false, error: String(err && err.message || err) });
+    });
     return true;
 });
