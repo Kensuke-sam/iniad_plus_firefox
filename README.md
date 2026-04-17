@@ -1,113 +1,140 @@
 # iniad_plus_firefox
 
-[INIAD++](https://github.com/Kensuke-sam/iniad_plus) を **Firefox で動かすために移植した** 非公式のリポジトリです。
+> **非公式** の Firefox 移植版です。本家および東洋大学とは関係ありません。
 
-本リポジトリは Firefox 移植に関する部分のみを扱います。拡張機能そのものの機能説明・免責事項・ライセンス・本家の開発方針については、フォーク元の [Kensuke-sam/iniad_plus](https://github.com/Kensuke-sam/iniad_plus) を参照してください。
+INIAD MOOCs / ace / Google Slides 向けの Chrome 拡張機能 [**INIAD++**](https://github.com/akahoshi1421/INIAD-) を、**Firefox (Manifest V3) で動作するように移植したもの**です。
+
+本体機能のオリジナル著作者は以下の方々です。本リポジトリは Firefox 対応に必要な改変のみを加えた派生物です。
+
+- 本家 (オリジナル): [**akahoshi1421/INIAD-**](https://github.com/akahoshi1421/INIAD-) by [@akahoshi1421](https://github.com/akahoshi1421)
+- Chrome 移植版 (直接の上流): [**Kensuke-sam/iniad_plus**](https://github.com/Kensuke-sam/iniad_plus) by [@Kensuke-sam](https://github.com/Kensuke-sam)
 
 ---
 
-## 動作環境
-- Firefox 115 以降（MV3 対応バージョン）
-- Firefox Developer Edition / Nightly / ESR でも動作します
+## 対応環境
+
+- Firefox 115 以降 (Manifest V3 対応バージョン)
+- Firefox Developer Edition / Nightly / ESR でも動作
+
+## 機能について
+
+拡張機能そのものの機能一覧・スクリーンショット・詳しい使い方は、**本家 [akahoshi1421/INIAD-](https://github.com/akahoshi1421/INIAD-) の README を参照してください**。本リポジトリは Firefox 移植に関する情報のみを扱います。
 
 ---
 
 ## Firefox へのインストール手順
 
-Firefox では未署名のアドオンを恒久的に入れることが通常版ではできないため、用途に応じて以下の方法を選んでください。
+Firefox は未署名アドオンの恒久インストールを通常版では許可しないため、用途に応じて次のいずれかを選んでください。
 
-- **A. とりあえず試したい人** → 一時読み込み（再起動で消えます／通常版 Firefox で可）
-- **B. 再起動後も使い続けたい人** → Developer Edition 等で `.xpi` をインストール
-- **C. 通常版 Firefox で恒久的に使いたい人** → Mozilla の署名を取得する
+- **A. 試すだけ** → 一時読み込み (通常版 Firefox OK、再起動で消える)
+- **B. 自分用にずっと使う** → Developer Edition などで署名検証を無効化して `.xpi` をインストール
+- **C. 通常版 Firefox で恒久利用** → Mozilla 署名 (self-distribution / unlisted) を取得
 
-### 事前準備：このリポジトリを取得する
+### 事前準備：ソースを取得する
 
-1. このリポジトリの右上の緑色の **Code** ボタンを押して **Download ZIP** を選び、好きな場所に展開します。
-   - Git が使える人は次のコマンドでも OK:
-     ```bash
-     git clone https://github.com/Kensuke-sam/iniad_plus_firefox.git
-     ```
-2. 展開または clone したフォルダーの直下に `manifest.json` があることを確認してください。以降の手順ではこのフォルダーを **拡張機能フォルダー** と呼びます。
+緑の **Code** ボタン → **Download ZIP** で取得するか、次のコマンドでクローンしてください。
+
+```bash
+git clone https://github.com/Kensuke-sam/iniad_plus_firefox.git
+```
+
+展開したフォルダー直下に `manifest.json` があることを確認してください。以降この直下フォルダーを **拡張機能フォルダー** と呼びます。
 
 ---
 
-### A. 一時的に読み込む（再起動で消える・通常版 Firefox で可）
+### A. 一時的に読み込む (通常版 Firefox で可・再起動で消える)
 
-もっとも簡単で、Firefox のバージョン・種類を問わず利用できる方法です。Firefox を再起動すると自動的に解除されます。
-
-1. Firefox を起動し、アドレスバーに以下を入力して Enter
+1. Firefox のアドレスバーに以下を入力して Enter
    ```
    about:debugging#/runtime/this-firefox
    ```
-2. 左側メニューの **This Firefox**（この Firefox）が選ばれていることを確認
-3. 画面上部の **一時的なアドオンを読み込む... / Load Temporary Add-on...** ボタンを押す
-4. ファイル選択ダイアログで、拡張機能フォルダー内の `manifest.json` を選んで開く
-5. 一覧に **INIAD++ (Firefox)** が表示されれば読み込み成功です
-6. [https://moocs.iniad.org/](https://moocs.iniad.org/) を開いて、追加された機能が動くことを確認してください
+2. 左メニューの **This Firefox** (この Firefox) を選ぶ
+3. 上部の **一時的なアドオンを読み込む... / Load Temporary Add-on...** を押す
+4. 拡張機能フォルダー内の `manifest.json` を選ぶ
+5. 一覧に **INIAD++ (Firefox)** が出れば成功
+6. `https://moocs.iniad.org/` で動作確認
 
-#### 更新・解除について
-- ファイルを書き換えた後は `about:debugging` 画面で **再読み込み / Reload** を押すと反映されます
-- やめたい場合は **削除 / Remove** を押すか、Firefox を再起動してください
+コードを書き換えた場合は同画面の **再読み込み / Reload** ボタンで反映できます。
 
 ---
 
-### B. Developer Edition / Nightly / ESR で恒久的にインストールする
-
-署名検証を無効化できる Firefox を使う方法です。自分専用で恒久的に使いたい場合に便利です。
+### B. Developer Edition / Nightly / ESR で恒久インストール
 
 1. 次のいずれかをインストール
    - [Firefox Developer Edition](https://www.mozilla.org/ja/firefox/developer/)
    - [Firefox Nightly](https://www.mozilla.org/ja/firefox/channel/desktop/#nightly)
    - [Firefox ESR](https://www.mozilla.org/ja/firefox/enterprise/)
-2. アドレスバーに `about:config` と入力し、警告画面で **危険性を承知の上で使用する** を選ぶ
-3. 検索ボックスに `xpinstall.signatures.required` と入力し、値をダブルクリックして **false** に変更する
-4. `.xpi` を作成する
+2. `about:config` を開き、警告を承諾
+3. `xpinstall.signatures.required` を **false** に変更
+4. `.xpi` を作成
    - macOS / Linux:
      ```bash
      cd iniad_plus_firefox
-     zip -r ../iniad_plus_firefox.xpi . -x "debugs/*" ".git/*"
+     zip -r ../iniad_plus_firefox.xpi . -x "debugs/*" ".git/*" "*.md"
      ```
-   - Windows（コマンドが使えない場合）:
-     1. 拡張機能フォルダーを開き、**中身（manifest.json・css・img・js・lib 等）をすべて選択**
-     2. 右クリック → **送る > 圧縮 (zip) フォルダー** を選択
-     3. できた `.zip` ファイルの拡張子を `.xpi` にリネーム
-5. アドレスバーに `about:addons` と入力 → 右上の歯車アイコン → **ファイルからアドオンをインストール...** を選ぶ
-6. 作成した `iniad_plus_firefox.xpi` を指定し、確認ダイアログで **追加** を押す
+   - Windows: フォルダー内の中身を全選択 → 右クリックで zip 圧縮 → 拡張子を `.xpi` に変更
+5. `about:addons` → 歯車 → **ファイルからアドオンをインストール...** → 作成した `.xpi` を指定
 
----
+### C. 通常版 Firefox で恒久利用したい (Mozilla 署名を取得)
 
-### C. 通常版 Firefox で使いたい（Mozilla 署名を取得する）
+1. [Firefox Add-on Developer Hub](https://addons.mozilla.org/developers/) でアカウント登録
+2. B 手順 4 で作った `.xpi` を **unlisted (self-distribution)** としてアップロード
+3. 自動レビュー通過後、署名済み `.xpi` をダウンロード
+4. 通常版 Firefox の `about:addons` から読み込む
 
-通常版 Firefox は署名済みのアドオンしか恒久的にインストールできません。自分だけで使うための署名 (self-distribution / unlisted) は無料で取得できます。
-
-1. [Firefox Add-on Developer Hub](https://addons.mozilla.org/developers/) でアカウントを登録
-2. 左メニューの **Submit a New Add-on** から、B 手順 4 で作成した `.xpi` をアップロード
-3. 配布方法の選択では **On your own（自分で配布）= unlisted** を選ぶ
-   - AMO のストアには並びません。自分でリンクを共有して使う形です
-4. 自動レビューが通ると、署名済みの `.xpi` がダウンロードできるようになります
-5. 通常版 Firefox の `about:addons` → 歯車 → **ファイルからアドオンをインストール...** で署名済み `.xpi` を読み込む
-
-> ⚠️ AMO に **公開 (listed)** として提出すると人手レビュー対象になります。非公式拡張のため、unlisted (self-distribution) での署名取得を推奨します。
+> ⚠️ AMO への **listed (公開) 提出** はレビュー対象が増えます。非公式拡張のため、自分用であれば unlisted 署名で十分です。
 
 ---
 
 ## うまく動かないとき
-- **読み込み時に「エラー: There was an error during installation」等が出る**  
-  `manifest.json` を直接選択しているかを確認してください（フォルダーや ZIP を選んでもエラーになります）。
-- **`about:addons` で警告が出る**  
-  通常版 Firefox を使っている場合は署名が必要です。A または C の手順を利用してください。
-- **機能が反映されない**  
-  対象ページ (`https://moocs.iniad.org/`, `https://docs.google.com/presentation/*`, `https://www.ace.toyo.ac.jp/ct/home*`) を開いた状態で、一度タブを再読み込みしてください。
+
+- **読み込み時にエラー**: フォルダや ZIP ではなく `manifest.json` ファイル単体を選んでください
+- **通常版 Firefox で B を試しても署名エラー**: 通常版では `xpinstall.signatures.required` を変更できません。Developer Edition などを使うか C の手順で署名を取得してください
+- **機能が出ない**: 対象ページ (`moocs.iniad.org`, `docs.google.com/presentation`, `ace.toyo.ac.jp/ct/home`) を再読み込みしてみてください
+- **スライド PDF ダウンロードが失敗する**: ブラウザコンソール (`Ctrl+Shift+J` / `Cmd+Shift+J`) のエラーを Issue に貼ってください
 
 ---
 
-## このリポジトリで行った移植作業
-- `manifest.json` に Firefox 用の `browser_specific_settings.gecko`（ID と最小バージョン）を追加
-- Chrome Web Store に関する記述を README から削除し、Firefox 向けのインストール手順に差し替え
-- 拡張機能本体の JavaScript / CSS は本家のものをそのまま利用しています
+## このリポジトリで行った Firefox 対応
+
+Chrome 版からの変更は最小限です。
+
+- `manifest.json` に `browser_specific_settings.gecko` (拡張機能 ID と最小バージョン 115.0) を追加
+- Google Slides の画像を取得する `fetch` を Firefox の content script (isolated world) で動かすため、**background script 経由** に変更 (`js/bg_fetch.js` を追加し `host_permissions` を設定)
+- jsPDF の global 参照を `window.jspdf` → `globalThis.jspdf` に変更 (content script sandbox 対応)
+- Chrome Web Store 関連の記述を削除し、Firefox 向けインストール手順に差し替え
+- 本体機能の JavaScript / CSS は本家のものを流用
+
+## 貢献について
+
+- **機能に関する Issue / PR は本家 [akahoshi1421/INIAD-](https://github.com/akahoshi1421/INIAD-) にお願いします**
+- Firefox 移植に固有の問題 (インストール、CORS、Firefox での挙動差異など) のみ本リポジトリで扱います
 
 ---
 
-## フォーク元 / 著作権 / ライセンス
-- 本体の実装・機能・免責事項・ライセンスは、すべてフォーク元の [Kensuke-sam/iniad_plus](https://github.com/Kensuke-sam/iniad_plus) に準拠します。詳細は本家の README を参照してください。
-- 本リポジトリは Firefox 向けの移植作業のみを行っており、本家の内容を代弁するものではありません。
+## ライセンスと第三者ソフトウェア
+
+- 本リポジトリに含まれる本体コードの著作権は本家 ([@akahoshi1421](https://github.com/akahoshi1421)) に帰属します。
+- `js/download.js` および `lib/` 以下のライブラリはそれぞれ **MIT License** です。各ファイル冒頭のライセンス表記は保持しています。
+- 同梱ライブラリと著作権表示の一覧は [NOTICE.md](./NOTICE.md) を参照してください。
+
+## 免責事項
+
+本拡張の利用にあたっては **[DISCLAIMER.md](./DISCLAIMER.md)** を必ずお読みください。
+
+要点のみ抜粋:
+
+- 本ソフトウェアは **東洋大学・INIAD の公式ソフトウェアではありません**
+- 利用によって生じたいかなる損害についても作者は責任を負いません
+- スライドの複製は **著作権法の範囲内 (私的利用など)** で行ってください。二次配布は法律違反となる場合があります
+
+---
+
+## SNS などで紹介していただける方へ
+
+ご紹介いただける場合は、次の 2 点だけご配慮ください。
+
+1. **非公式の Firefox 移植版** であることの明記
+2. **本家リポジトリ [akahoshi1421/INIAD-](https://github.com/akahoshi1421/INIAD-) へのリンク**
+
+本家作者さんへの敬意の表明として、大変助かります。
