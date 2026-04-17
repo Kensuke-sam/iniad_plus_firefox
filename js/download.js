@@ -124,11 +124,14 @@ $(function(){
                 if(is_break1 == front && image_done >= is_break1){
                     clearInterval(id);
 
-                    if(!window.jspdf || !window.jspdf.jsPDF){
+                    const jspdfLib = (typeof globalThis !== "undefined" && globalThis.jspdf)
+                        || (typeof self !== "undefined" && self.jspdf)
+                        || window.jspdf;
+                    if(!jspdfLib || !jspdfLib.jsPDF){
                         alert("jsPDFの読み込みに失敗しました。拡張機能を再読み込みしてください。");
                         return;
                     }
-                    const { jsPDF } = window.jspdf;
+                    const { jsPDF } = jspdfLib;
 
                     let pdf = null;
                     let cnt = 1;
