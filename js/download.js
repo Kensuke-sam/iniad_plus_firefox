@@ -75,25 +75,31 @@ $(function(){
 
                     (async () => {
                         try {
-                            async function getImage(url){
-                                const res = await fetch(url);
-                                const blob = await res.blob()
-                                return blob;
+                            const api = typeof browser !== "undefined" ? browser : (typeof chrome !== "undefined" ? chrome : null);
+                            let dataUrl = null;
+                            if(api && api.runtime && api.runtime.sendMessage){
+                                try {
+                                    const resp = await api.runtime.sendMessage({ type: "iniadpp:fetchImage", url: imgURL });
+                                    if(resp && resp.ok && resp.dataUrl){
+                                        dataUrl = resp.dataUrl;
+                                    } else if(resp && !resp.ok){
+                                        console.warn("background fetch failed:", resp.error);
+                                    }
+                                } catch(e){
+                                    console.warn("sendMessage failed, falling back to direct fetch:", e);
+                                }
                             }
-
-                            const imageData = await getImage(imgURL);
-
-                            await new Promise(function(resolve){
-                                let filereader = new FileReader();
-                                filereader.onload = function(){
-                                    $(imageNode).attr({
-                                        "xlink:href": this.result
-                                    });
-                                    resolve();
-                                };
-                                filereader.onerror = function(){ resolve(); };
-                                filereader.readAsDataURL(imageData);
-                            });
+                            if(!dataUrl){
+                                const res = await fetch(imgURL);
+                                const blob = await res.blob();
+                                dataUrl = await new Promise(function(resolve, reject){
+                                    const fr = new FileReader();
+                                    fr.onload = function(){ resolve(fr.result); };
+                                    fr.onerror = function(){ reject(fr.error); };
+                                    fr.readAsDataURL(blob);
+                                });
+                            }
+                            $(imageNode).attr({ "xlink:href": dataUrl });
                         } catch(e){
                             console.warn("画像のbase64変換に失敗:", e);
                         } finally {

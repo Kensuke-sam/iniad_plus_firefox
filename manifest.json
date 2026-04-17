@@ -9,6 +9,17 @@
             "strict_min_version": "115.0"
         }
     },
+    "background": {
+        "scripts": ["js/bg_fetch.js"]
+    },
+    "host_permissions": [
+        "https://docs.google.com/*",
+        "https://*.googleusercontent.com/*",
+        "https://lh3.googleusercontent.com/*",
+        "https://lh4.googleusercontent.com/*",
+        "https://lh5.googleusercontent.com/*",
+        "https://lh6.googleusercontent.com/*"
+    ],
     "icons":{
         "16": "img/iniadpp16.png",
         "48": "img/iniadpp48.png",
