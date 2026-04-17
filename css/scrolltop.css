@@ -1,0 +1,15 @@
+#sctop{
+    width: 5%;
+    height: 60px;
+    opacity: 0.9;
+    position: fixed;
+    right: 2%;
+    bottom: 2%;
+    z-index: 1000;
+}
+
+#scicon{
+    font-size: 300%;
+    left: 25%;
+    position: relative;
+}

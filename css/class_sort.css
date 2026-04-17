@@ -1,0 +1,11 @@
+.ui-sortable-handle{
+    cursor: move;
+}
+
+#class-sort-regist, #showdefault{
+    margin-bottom: 5px;
+}
+
+#showdefault{
+    margin-left: 5px;
+}

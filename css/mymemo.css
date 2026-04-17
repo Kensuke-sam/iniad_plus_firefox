@@ -1,0 +1,33 @@
+.mymemo-contents{
+    position: absolute;
+    top: 100px;
+    width: 15%;
+    background-color: rgb(116, 113, 113);
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+.memobtn{
+    position: relative;
+    left: 10%;
+}
+
+.textarea-mymemo{
+    width: 100%;
+
+}
+
+.memoul{
+    position: relative;
+    left: 20%;
+    list-style: none;
+}
+
+.memoul li{
+    display: inline-block;
+    padding-right: 10%;
+}
+
+.mymemopd{
+    padding-bottom: 5px;
+}
