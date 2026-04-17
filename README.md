@@ -107,7 +107,8 @@ Chrome 版を使いたい人は本家 [akahoshi1421/INIAD-](https://github.com/a
 cd iniad_plus_firefox
 zip -r ../iniad_plus_firefox.xpi . \
   -x "debugs/*" ".git/*" "*.md" ".DS_Store" "*/.DS_Store" \
-     ".vs/*" "node_modules/*" "web-ext-artifacts/*" "*.xpi"
+     ".vs/*" "node_modules/*" "web-ext-artifacts/*" "*.xpi" \
+     ".gitignore"
 ```
 
 **Windows:**
