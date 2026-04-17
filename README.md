@@ -1,97 +1,113 @@
-# INIAD++ (Firefox 版)
-![説明](img/discription.PNG)
+# iniad_plus_firefox
 
-東洋大学情報連携学部(INIAD)のオンライン教育システム [INIAD MOOCs](https://moocs.iniad.org/) とその周辺サイト群に様々な機能を追加する Firefox 拡張機能です。
+[INIAD++](https://github.com/Kensuke-sam/iniad_plus) を **Firefox で動かすために移植した** 非公式のリポジトリです。
 
-本リポジトリは [Kensuke-sam/iniad_plus](https://github.com/Kensuke-sam/iniad_plus) (Chrome 版) を Firefox 向けに移植したものです。
-
-## インストール方法
-
-Firefox には大きく分けて 2 種類の入れ方があります。お手軽に試したい人は **A. 一時的に入れる方法**、再起動後も使いたい人は **B. ずっと使えるようにする方法** を参照してください。
-
-### 事前準備：ソースコードを入手する
-1. このリポジトリの [`Code` ボタン](https://github.com/Kensuke-sam/iniad_plus) → **Download ZIP** をクリックしてダウンロードし、好きな場所に展開します。
-   - Git が使えるなら `git clone https://github.com/Kensuke-sam/iniad_plus.git` でも OK です。
-2. 展開後に `iniad_plus_firefox/` というフォルダーができていることを確認してください。このフォルダーの中に `manifest.json` が入っています。
+本リポジトリは Firefox 移植に関する部分のみを扱います。拡張機能そのものの機能説明・免責事項・ライセンス・本家の開発方針については、フォーク元の [Kensuke-sam/iniad_plus](https://github.com/Kensuke-sam/iniad_plus) を参照してください。
 
 ---
 
-### A. 一時的に入れる方法（再起動で消える / 誰でも可）
+## 動作環境
+- Firefox 115 以降（MV3 対応バージョン）
+- Firefox Developer Edition / Nightly / ESR でも動作します
 
-通常版の Firefox でも利用できる、最も簡単な手順です。ただし **Firefox を再起動すると自動的に解除される** ため、使うたびに読み込む必要があります。
+---
 
-1. Firefox を起動し、アドレスバーに `about:debugging#/runtime/this-firefox` と入力して Enter
-2. 左のメニューで **This Firefox**（この Firefox）を選ぶ
+## Firefox へのインストール手順
+
+Firefox では未署名のアドオンを恒久的に入れることが通常版ではできないため、用途に応じて以下の方法を選んでください。
+
+- **A. とりあえず試したい人** → 一時読み込み（再起動で消えます／通常版 Firefox で可）
+- **B. 再起動後も使い続けたい人** → Developer Edition 等で `.xpi` をインストール
+- **C. 通常版 Firefox で恒久的に使いたい人** → Mozilla の署名を取得する
+
+### 事前準備：このリポジトリを取得する
+
+1. このリポジトリの右上の緑色の **Code** ボタンを押して **Download ZIP** を選び、好きな場所に展開します。
+   - Git が使える人は次のコマンドでも OK:
+     ```bash
+     git clone https://github.com/Kensuke-sam/iniad_plus_firefox.git
+     ```
+2. 展開または clone したフォルダーの直下に `manifest.json` があることを確認してください。以降の手順ではこのフォルダーを **拡張機能フォルダー** と呼びます。
+
+---
+
+### A. 一時的に読み込む（再起動で消える・通常版 Firefox で可）
+
+もっとも簡単で、Firefox のバージョン・種類を問わず利用できる方法です。Firefox を再起動すると自動的に解除されます。
+
+1. Firefox を起動し、アドレスバーに以下を入力して Enter
+   ```
+   about:debugging#/runtime/this-firefox
+   ```
+2. 左側メニューの **This Firefox**（この Firefox）が選ばれていることを確認
 3. 画面上部の **一時的なアドオンを読み込む... / Load Temporary Add-on...** ボタンを押す
-4. ファイル選択ダイアログで、先ほど展開した `iniad_plus_firefox/manifest.json` を選んで開く
-5. 一覧に **INIAD++ (Firefox)** が追加されれば成功です
-6. [https://moocs.iniad.org/](https://moocs.iniad.org/) を開いて機能が動くか確認してください
+4. ファイル選択ダイアログで、拡張機能フォルダー内の `manifest.json` を選んで開く
+5. 一覧に **INIAD++ (Firefox)** が表示されれば読み込み成功です
+6. [https://moocs.iniad.org/](https://moocs.iniad.org/) を開いて、追加された機能が動くことを確認してください
 
-#### 更新・解除
-- コードを書き換えた場合は、同じ画面で **再読み込み / Reload** を押すと反映されます
-- やめたいときは **削除 / Remove** を押すか、Firefox を再起動してください
+#### 更新・解除について
+- ファイルを書き換えた後は `about:debugging` 画面で **再読み込み / Reload** を押すと反映されます
+- やめたい場合は **削除 / Remove** を押すか、Firefox を再起動してください
 
 ---
 
-### B. ずっと使えるようにする方法
+### B. Developer Edition / Nightly / ESR で恒久的にインストールする
 
-通常版 Firefox は **署名されていないアドオンを恒久的に入れることはできません**（`xpinstall.signatures.required` を `false` にできないため）。以下のいずれかの方法を選んでください。
-
-#### B-1. 開発者向け Firefox を使う（署名不要）
-Firefox Developer Edition / Nightly / ESR では署名チェックを無効化できます。
+署名検証を無効化できる Firefox を使う方法です。自分専用で恒久的に使いたい場合に便利です。
 
 1. 次のいずれかをインストール
    - [Firefox Developer Edition](https://www.mozilla.org/ja/firefox/developer/)
    - [Firefox Nightly](https://www.mozilla.org/ja/firefox/channel/desktop/#nightly)
    - [Firefox ESR](https://www.mozilla.org/ja/firefox/enterprise/)
-2. アドレスバーに `about:config` を入力し、警告を承諾
-3. `xpinstall.signatures.required` を検索し、値を **false** に変更
-4. ターミナルで `iniad_plus_firefox/` 直下に移動して `.xpi` を作成
-   ```bash
-   cd iniad_plus_firefox
-   zip -r ../iniad_plus_firefox.xpi . -x "debugs/*" ".git/*"
-   ```
-   （zip コマンドがない Windows の場合は、フォルダー内のファイルをすべて選択して右クリック → 圧縮し、拡張子を `.zip` から `.xpi` に変更してください）
-5. アドレスバーに `about:addons` を入力 → 歯車アイコン → **ファイルからアドオンをインストール...** を選び、作成した `iniad_plus_firefox.xpi` を指定
-6. インストール確認ダイアログで **追加** を押す
+2. アドレスバーに `about:config` と入力し、警告画面で **危険性を承知の上で使用する** を選ぶ
+3. 検索ボックスに `xpinstall.signatures.required` と入力し、値をダブルクリックして **false** に変更する
+4. `.xpi` を作成する
+   - macOS / Linux:
+     ```bash
+     cd iniad_plus_firefox
+     zip -r ../iniad_plus_firefox.xpi . -x "debugs/*" ".git/*"
+     ```
+   - Windows（コマンドが使えない場合）:
+     1. 拡張機能フォルダーを開き、**中身（manifest.json・css・img・js・lib 等）をすべて選択**
+     2. 右クリック → **送る > 圧縮 (zip) フォルダー** を選択
+     3. できた `.zip` ファイルの拡張子を `.xpi` にリネーム
+5. アドレスバーに `about:addons` と入力 → 右上の歯車アイコン → **ファイルからアドオンをインストール...** を選ぶ
+6. 作成した `iniad_plus_firefox.xpi` を指定し、確認ダイアログで **追加** を押す
 
-#### B-2. 通常版 Firefox で使いたい場合（署名が必要）
-通常版 Firefox でそのまま入れるには、Mozilla による署名が必要です。
+---
 
-1. [Firefox Add-on Developer Hub](https://addons.mozilla.org/developers/) にアカウント登録
-2. 上記 B-1 の手順 4 で作成した `.xpi` を「自分だけで使う（self-distribution / unlisted）」としてアップロード
-3. 署名済みの `.xpi` がダウンロードできるようになったら、`about:addons` → 歯車アイコン → **ファイルからアドオンをインストール...** で読み込む
+### C. 通常版 Firefox で使いたい（Mozilla 署名を取得する）
 
-> ⚠️ 本拡張は非公式のため、AMO に公開（listed）で提出すると審査で落ちる可能性があります。self-distribution (unlisted) での署名取得を推奨します。
+通常版 Firefox は署名済みのアドオンしか恒久的にインストールできません。自分だけで使うための署名 (self-distribution / unlisted) は無料で取得できます。
 
-## 機能
-* 直近の講義のお知らせ
-* aceから時間割のダウンロード
-* 講義スライドのダウンロード (PDF)
-* トップページに表示されているコース一覧の自由な入れ替え
-* 1ページごとにメモ機能(複数可)
-* メモのダウンロード
-* メモを保存したページ一覧を表示するページ
-* 外部リンク一覧
-* ドライブを開くボタン
-* 背景色の変更
-* ヘッダおよびサイドバーの追従
-  (上記2つはアカウント設定ページから変更できます)
-* ページ上部に戻るボタン
-* 入力文字カウント
-* スライド位置、大きさの操作
+1. [Firefox Add-on Developer Hub](https://addons.mozilla.org/developers/) でアカウントを登録
+2. 左メニューの **Submit a New Add-on** から、B 手順 4 で作成した `.xpi` をアップロード
+3. 配布方法の選択では **On your own（自分で配布）= unlisted** を選ぶ
+   - AMO のストアには並びません。自分でリンクを共有して使う形です
+4. 自動レビューが通ると、署名済みの `.xpi` がダウンロードできるようになります
+5. 通常版 Firefox の `about:addons` → 歯車 → **ファイルからアドオンをインストール...** で署名済み `.xpi` を読み込む
 
-## Chrome 版との差分
-* `manifest.json` に Firefox 用の `browser_specific_settings.gecko` を追加し、拡張機能 ID と最小バージョン (115.0) を指定。
-* コンテンツスクリプトのみで動作しており `chrome.*` / `browser.*` 独自 API は使用していないため、JavaScript 本体はそのまま動作します。
-* ストア掲載 URL の案内を Chrome Web Store から削除しています。
+> ⚠️ AMO に **公開 (listed)** として提出すると人手レビュー対象になります。非公式拡張のため、unlisted (self-distribution) での署名取得を推奨します。
 
-## 注意
-本ソフトウェアは、東洋大学及び東洋大学情報連携学部の公式ソフトウェア又は公式サービスとして公認、公開、頒布等しているものではありません。
+---
 
-本サービスにて提供する情報の正確性・妥当性につきましては細心の注意を払っておりますが、当作者はその保証をするものではありません。本サービスの利用によって利用者や第三者等にネットワーク障害等による損害、データの損失その他あらゆる不具合、不都合が生じた場合について、裁判所またはそれに準ずる機関で当作者の重過失が認められた場合を除き、当作者では一切の責任を負いません。
+## うまく動かないとき
+- **読み込み時に「エラー: There was an error during installation」等が出る**  
+  `manifest.json` を直接選択しているかを確認してください（フォルダーや ZIP を選んでもエラーになります）。
+- **`about:addons` で警告が出る**  
+  通常版 Firefox を使っている場合は署名が必要です。A または C の手順を利用してください。
+- **機能が反映されない**  
+  対象ページ (`https://moocs.iniad.org/`, `https://docs.google.com/presentation/*`, `https://www.ace.toyo.ac.jp/ct/home*`) を開いた状態で、一度タブを再読み込みしてください。
 
-スライドの複製は、著作権法に違反しない範囲で行ってください。二次配布など私的利用の範囲を超えた場合は法律違反となる場合があります。スライドの複製はユーザのローカル環境で行っており、当作者サーバでの複製は行っておりません。
+---
 
-## ライセンス
-ライセンスに関しては自由としますが、一部コード [js/download.js](js/download.js) や lib ディレクトリに入っているファイル群に関しては MIT ライセンスが付随しているのでご注意ください。
+## このリポジトリで行った移植作業
+- `manifest.json` に Firefox 用の `browser_specific_settings.gecko`（ID と最小バージョン）を追加
+- Chrome Web Store に関する記述を README から削除し、Firefox 向けのインストール手順に差し替え
+- 拡張機能本体の JavaScript / CSS は本家のものをそのまま利用しています
+
+---
+
+## フォーク元 / 著作権 / ライセンス
+- 本体の実装・機能・免責事項・ライセンスは、すべてフォーク元の [Kensuke-sam/iniad_plus](https://github.com/Kensuke-sam/iniad_plus) に準拠します。詳細は本家の README を参照してください。
+- 本リポジトリは Firefox 向けの移植作業のみを行っており、本家の内容を代弁するものではありません。
