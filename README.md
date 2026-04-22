@@ -1,8 +1,8 @@
 # iniad_plus_firefox
 
-> **非公式** の Firefox 移植版です。本家および東洋大学とは関係ありません。
+> 東洋大学・INIAD の公式ソフトウェアではありません。
 
-INIAD MOOCs / ace / Google Slides 向けの Chrome 拡張機能 [**INIAD++**](https://github.com/akahoshi1421/INIAD-) を、**Firefox (Manifest V3) で動作するように移植したもの**です。
+INIAD MOOCs / ace / Google Slides 向けの Chrome 拡張機能 [**INIAD++**](https://github.com/akahoshi1421/INIAD-) を、**Firefox (Manifest V3) で動作するように移植したもの**です。本家作者 [@akahoshi1421](https://github.com/akahoshi1421) から Firefox 移植・公開の許可をいただいています。
 
 本体機能のオリジナル著作者は以下の方々です。本リポジトリは Firefox 対応に必要な改変のみを加えた派生物です。
 
@@ -207,7 +207,7 @@ Chrome 版からの変更は **最小限** に抑えています。本体機能�
 
 ご紹介いただける場合は、次の 2 点だけご配慮ください。
 
-1. **非公式の Firefox 移植版** であることの明記
+1. **東洋大学・INIAD の公式ソフトウェアではない** ことの明記
 2. **本家リポジトリ [akahoshi1421/INIAD-](https://github.com/akahoshi1421/INIAD-) へのリンク**
 
 本家作者さんへの敬意の表明として、大変助かります。
