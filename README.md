@@ -168,13 +168,12 @@ zip -r ../iniad_plus_firefox.xpi . \
 
 ## このリポジトリで行った Firefox 対応
 
-Chrome 版からの変更は **最小限** に抑えています。本体機能には手を入れていません。
+Chrome 版の最新内容を追従しつつ、Firefox で必要な差分だけを残しています。
 
 - `manifest.json` に `browser_specific_settings.gecko` (拡張機能 ID と最小バージョン 115.0) と `host_permissions` を追加
-- Google Slides の画像取得 `fetch` を、Firefox の content script (isolated world) の CORS 制約を回避するため **background script 経由** に変更 (`js/bg_fetch.js` を追加)
-- jsPDF の参照を `window.jspdf` → `globalThis.jspdf || self.jspdf || window.jspdf` に変更 (content script sandbox 対応)
-- Chrome Web Store 関連の記述を削除し、Firefox 向けインストール手順に差し替え
-- 本体機能の JavaScript / CSS は **本家のものをそのまま流用**
+- Google Slides の PDF 保存処理は Chrome 版と同じ印刷ベースのフローに合わせつつ、画像取得が失敗した場合だけ `js/bg_fetch.js` を使うフォールバックを残しています
+- Chrome Web Store 関連の記述を削除し、Firefox 向けインストール手順に差し替えています
+- 本体機能の JavaScript / CSS / アイコンは **上流の `iniad_plus` を参照して同期** しています
 
 ---
 

@@ -22,188 +22,225 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-function svgToDataUrl(svgElement, scale){
-    return new Promise(function(resolve, reject){
-        const serialized = new XMLSerializer().serializeToString(svgElement);
-        const viewBox = svgElement.viewBox && svgElement.viewBox.baseVal;
-        const w = viewBox && viewBox.width ? viewBox.width : (svgElement.getBoundingClientRect().width || 960);
-        const h = viewBox && viewBox.height ? viewBox.height : (svgElement.getBoundingClientRect().height || 540);
+$(function(){
+    if(window.location.href.indexOf("docs.google.com/presentation/d/e") == -1) return;
 
-        const svgBlob = new Blob([serialized], {type: "image/svg+xml;charset=utf-8"});
-        const url = URL.createObjectURL(svgBlob);
+    const check = confirm("スライドをPDFでダウンロードしますか？\n次に開く印刷ダイアログで送信先を「PDFに保存」にしてください。");
+    if(!check) return;
 
-        const img = new Image();
-        img.onload = function(){
-            const canvas = document.createElement("canvas");
-            canvas.width = Math.max(1, Math.round(w * scale));
-            canvas.height = Math.max(1, Math.round(h * scale));
-            const ctx = canvas.getContext("2d");
-            ctx.fillStyle = "#ffffff";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            URL.revokeObjectURL(url);
-            try {
-                const dataUrl = canvas.toDataURL("image/jpeg", 0.92);
-                resolve({dataUrl: dataUrl, width: w, height: h});
-            } catch(e){
-                reject(e);
-            }
-        };
-        img.onerror = function(e){
-            URL.revokeObjectURL(url);
-            reject(e);
-        };
-        img.src = url;
+    runPdfExport().catch(function(err){
+        console.error("[INIADPULS PDF] エラー:", err);
+        alert("PDF生成中にエラーが発生しました:\n" + (err && err.message ? err.message : err));
+    });
+});
+
+async function readBlobAsDataUrl(blob){
+    return await new Promise(function(resolve, reject){
+        const fr = new FileReader();
+        fr.onload = function(){ resolve(fr.result); };
+        fr.onerror = function(){ reject(new Error("FileReader failure")); };
+        fr.readAsDataURL(blob);
     });
 }
 
-$(function(){
-    if(window.location.href.indexOf("docs.google.com/presentation/d/e") != -1){
-        let check = confirm("スライドをPDFでダウンロードしますか？");
-        if(check){
-            let name_pdf;
+async function fetchImageDirect(url){
+    const res = await fetch(url.toString(), { credentials: "include" });
+    if(!res.ok) throw new Error("HTTP " + res.status);
 
-            let click_cnt = 0;
-            let is_break1 = 0;
-            let image_done = 0;
-            for(;;){
-                let slide = $('.punch-viewer-svgpage-svgcontainer:last>svg').get(0);
+    const contentType = res.headers.get("Content-Type") || "";
+    if(!/^image\//i.test(contentType)) throw new Error("Not an image: " + contentType);
 
-                $(slide).find("image").each(function(i){
-                    let imgURL = $(this).attr("xlink:href");
-                    const imageNode = $(slide).find("image")[i];
+    return await readBlobAsDataUrl(await res.blob());
+}
 
-                    (async () => {
-                        try {
-                            const api = typeof browser !== "undefined" ? browser : (typeof chrome !== "undefined" ? chrome : null);
-                            let dataUrl = null;
-                            if(api && api.runtime && api.runtime.sendMessage){
-                                try {
-                                    const resp = await api.runtime.sendMessage({ type: "iniadpp:fetchImage", url: imgURL });
-                                    if(resp && resp.ok && resp.dataUrl){
-                                        dataUrl = resp.dataUrl;
-                                    } else if(resp && !resp.ok){
-                                        console.warn("background fetch failed:", resp.error);
-                                    }
-                                } catch(e){
-                                    console.warn("sendMessage failed, falling back to direct fetch:", e);
-                                }
-                            }
-                            if(!dataUrl){
-                                const res = await fetch(imgURL);
-                                const blob = await res.blob();
-                                dataUrl = await new Promise(function(resolve, reject){
-                                    const fr = new FileReader();
-                                    fr.onload = function(){ resolve(fr.result); };
-                                    fr.onerror = function(){ reject(fr.error); };
-                                    fr.readAsDataURL(blob);
-                                });
-                            }
-                            $(imageNode).attr({ "xlink:href": dataUrl });
-                        } catch(e){
-                            console.warn("画像のbase64変換に失敗:", e);
-                        } finally {
-                            image_done++;
-                        }
-                    })()
-                    is_break1++;
-                });
+async function fetchImageViaBackground(url){
+    const api = typeof browser !== "undefined" ? browser : (typeof chrome !== "undefined" ? chrome : null);
+    if(!api || !api.runtime || !api.runtime.sendMessage) throw new Error("runtime.sendMessage unavailable");
 
-                if($(".docs-material-menu-button-flat-default-caption").attr("aria-setsize") == $(".docs-material-menu-button-flat-default-caption").text()){
-                    break;
-                }
-                document.dispatchEvent(new KeyboardEvent("keydown",{
-                    keyCode: 39,
-                    which: 39,
-                    key: "ArrowRight",
-                    code: "ArrowRight",
-                    bubbles: true
-                }));
-                click_cnt++;
+    const resp = await api.runtime.sendMessage({ type: "iniadpp:fetchImage", url: url.toString() });
+    if(!resp || !resp.ok || !resp.dataUrl){
+        throw new Error(resp && resp.error ? resp.error : "background fetch failed");
+    }
+    return resp.dataUrl;
+}
+
+async function inlineSlideImages(svg, pageIndex){
+    const imageNodes = $(svg).find("image").toArray();
+    await Promise.all(imageNodes.map(async function(imgNode){
+        const href = $(imgNode).attr("xlink:href") || $(imgNode).attr("href");
+        if(!href || href.indexOf("data:") === 0) return;
+
+        let url;
+        try { url = new URL(href, window.location.href); } catch(e){ return; }
+        if(url.protocol !== "https:") return;
+
+        const host = url.hostname;
+        const allowed = host === "docs.google.com"
+            || host.endsWith(".googleusercontent.com")
+            || host.endsWith(".gstatic.com");
+        if(!allowed) return;
+
+        try {
+            const dataUrl = await fetchImageDirect(url);
+            $(imgNode).attr("xlink:href", dataUrl);
+        } catch(directErr){
+            try {
+                const dataUrl = await fetchImageViaBackground(url);
+                $(imgNode).attr("xlink:href", dataUrl);
+            } catch(backgroundErr){
+                console.warn("[INIADPULS PDF] page " + pageIndex + " 画像のbase64化に失敗:", directErr, backgroundErr);
             }
+        }
+    }));
+}
 
-            for(let i = 0; i < click_cnt; i++){
-                document.dispatchEvent(new KeyboardEvent("keydown",{
-                    keyCode: 37,
-                    which: 37,
-                    key: "ArrowLeft",
-                    code: "ArrowLeft",
-                    bubbles: true
-                }));
+async function runPdfExport(){
+    const sleep = function(ms){ return new Promise(function(r){ setTimeout(r, ms); }); };
+
+    const waitFor = async function(check, opts){
+        opts = opts || {};
+        const timeout = opts.timeout || 15000;
+        const interval = opts.interval || 80;
+        const start = Date.now();
+        for(;;){
+            try {
+                if(check()) return;
+            } catch(e){}
+            if(Date.now() - start > timeout){
+                throw new Error(opts.message || "状態待機がタイムアウトしました");
             }
+            await sleep(interval);
+        }
+    };
 
-            let front = 0;
+    const getCaption = function(){ return $(".docs-material-menu-button-flat-default-caption"); };
+    const getTotalPages = function(){
+        const v = parseInt(getCaption().attr("aria-setsize"), 10);
+        return isNaN(v) ? null : v;
+    };
+    const getCurrentPage = function(){
+        const v = parseInt(getCaption().text(), 10);
+        return isNaN(v) ? null : v;
+    };
 
-            let id = setInterval(async function(){
-                if(is_break1 == front && image_done >= is_break1){
-                    clearInterval(id);
+    await waitFor(function(){
+        return getCaption().length > 0 && getTotalPages() !== null;
+    }, {timeout: 20000, message: "総ページ数の取得がタイムアウトしました"});
 
-                    const jspdfLib = (typeof globalThis !== "undefined" && globalThis.jspdf)
-                        || (typeof self !== "undefined" && self.jspdf)
-                        || window.jspdf;
-                    if(!jspdfLib || !jspdfLib.jsPDF){
-                        alert("jsPDFの読み込みに失敗しました。拡張機能を再読み込みしてください。");
-                        return;
-                    }
-                    const { jsPDF } = jspdfLib;
+    const totalPages = getTotalPages();
+    console.log("[INIADPULS PDF] 総ページ数: " + totalPages);
 
-                    let pdf = null;
-                    let cnt = 1;
-                    const scale = 2;
+    let safety = 0;
+    while(getCurrentPage() !== 1 && safety < 1000){
+        document.dispatchEvent(new KeyboardEvent("keydown", {keyCode: 37}));
+        await sleep(25);
+        safety++;
+    }
+    await waitFor(function(){ return getCurrentPage() === 1; },
+        {timeout: 8000, message: "最初のページへの移動がタイムアウトしました"});
 
-                    for(;;){
-                        let title = $(".punch-viewer-svgpage-a11yelement").attr('aria-label');
-                        if(cnt == 1){
-                            const titleArray = (title || "").split(":").slice(1);
-                            const pageTitle = titleArray.join("");
-                            name_pdf = pageTitle && pageTitle.trim() !== "" ? pageTitle : $("title").text();
-                        }
-                        let slide = $('.punch-viewer-svgpage-svgcontainer:last>svg').get(0);
+    const pages = [];
+    let pageTitle = "";
+    let prevSvgSnapshot = null;
 
-                        try {
-                            const rendered = await svgToDataUrl(slide, scale);
-                            const w = rendered.width;
-                            const h = rendered.height;
-                            const orientation = w >= h ? "l" : "p";
+    for(let i = 1; i <= totalPages; i++){
+        await waitFor(function(){
+            if(getCurrentPage() !== i) return false;
+            const s = $('.punch-viewer-svgpage-svgcontainer:last>svg').get(0);
+            if(!s) return false;
+            if(!s.children || s.children.length === 0) return false;
+            if(i > 1){
+                const snap = s.childElementCount + ":" + (s.getAttribute("viewBox") || "") + ":" + s.innerHTML.length;
+                if(snap === prevSvgSnapshot) return false;
+            }
+            return true;
+        }, {timeout: 20000, message: "page " + i + " のスライド描画待機がタイムアウトしました"});
 
-                            if(pdf === null){
-                                pdf = new jsPDF({
-                                    orientation: orientation,
-                                    unit: "pt",
-                                    format: [w, h]
-                                });
-                            } else {
-                                pdf.addPage([w, h], orientation);
-                            }
-                            pdf.addImage(rendered.dataUrl, "JPEG", 0, 0, w, h, undefined, "FAST");
-                        } catch(e){
-                            console.error("スライドのレンダリングに失敗しました:", e);
-                        }
+        await sleep(150);
 
-                        if($(".docs-material-menu-button-flat-default-caption").attr("aria-setsize") == $(".docs-material-menu-button-flat-default-caption").text()){
-                            break;
-                        }
-                        document.dispatchEvent(new KeyboardEvent("keydown",{
-                            keyCode: 39,
-                            which: 39,
-                            key: "ArrowRight",
-                            code: "ArrowRight",
-                            bubbles: true
-                        }));
-                        cnt++;
-                        await new Promise(function(r){ setTimeout(r, 150); });
-                    }
+        const svg = $('.punch-viewer-svgpage-svgcontainer:last>svg').get(0);
 
-                    if(pdf){
-                        const safeName = (name_pdf || "slides").replace(/[\\/:*?"<>|]/g, "_");
-                        pdf.save(safeName + ".pdf");
-                    } else {
-                        alert("PDFの生成に失敗しました。");
-                    }
-                }
-                front = is_break1;
-            }, 500);
+        if(i === 1){
+            const title = $(".punch-viewer-svgpage-a11yelement").attr("aria-label");
+            const titleArray = (title || "").split(":").slice(1);
+            const pt = titleArray.join("");
+            pageTitle = (pt && pt.trim() !== "") ? pt : $("title").text();
+        }
 
+        await inlineSlideImages(svg, i);
+
+        prevSvgSnapshot = svg.childElementCount + ":" + (svg.getAttribute("viewBox") || "") + ":" + svg.innerHTML.length;
+        pages.push(new XMLSerializer().serializeToString(svg));
+
+        if(i < totalPages){
+            document.dispatchEvent(new KeyboardEvent("keydown", {keyCode: 39}));
         }
     }
-});
+
+    console.log("[INIADPULS PDF] 全 " + pages.length + " ページの収集が完了");
+
+    let pageResult = "";
+    for(const pageSvg of pages){
+        pageResult += "<section class='slide-page'>" + pageSvg + "</section>";
+    }
+
+    const safeName = ((pageTitle || "slides") + "").replace(/[\\/:*?\"<>|]/g, "_");
+
+    const style = [
+        "@page { size: A4 landscape; margin: 0; }",
+        "html, body { margin: 0; padding: 0; background: #fff; font-family: sans-serif; }",
+        ".slide-page {",
+        "  box-sizing: border-box;",
+        "  width: 100vw;",
+        "  height: 100vh;",
+        "  display: flex;",
+        "  align-items: center;",
+        "  justify-content: center;",
+        "  overflow: hidden;",
+        "  page-break-after: always;",
+        "  break-after: page;",
+        "}",
+        ".slide-page:last-child { page-break-after: auto; break-after: auto; }",
+        ".slide-page > svg {",
+        "  width: 100%;",
+        "  height: 100%;",
+        "  max-width: 100%;",
+        "  max-height: 100%;",
+        "}",
+        "@media screen {",
+        "  body { background: #eee; padding: 24px 0; }",
+        "  .slide-page { width: min(90vw, 1280px); aspect-ratio: 16/9; height: auto; background: #fff; margin: 16px auto; box-shadow: 0 2px 12px rgba(0,0,0,.2); }",
+        "  #iniadpp-hint { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); background: #28a745; color: #fff; padding: 12px 20px; border-radius: 6px; z-index: 10000; box-shadow: 0 4px 12px rgba(0,0,0,.25); font-size: 14px; }",
+        "  #iniadpp-hint button { margin-left: 12px; padding: 6px 14px; background: #fff; color: #28a745; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }",
+        "}",
+        "@media print {",
+        "  #iniadpp-hint { display: none !important; }",
+        "}"
+    ].join("\n");
+
+    const hint = '<div id="iniadpp-hint">印刷ダイアログで送信先を<b>「PDFに保存」</b>にしてください。<button id="iniadpp-print-btn" type="button">印刷ダイアログを開く</button></div>';
+
+    const result = "<!DOCTYPE html><html lang='ja'><head><meta charset='utf-8'><title>" + safeName + "</title><style>" + style + "</style></head><body>" + hint + pageResult + "</body></html>";
+
+    document.open();
+    document.write(result);
+    document.close();
+    document.title = safeName;
+    console.log("[INIADPULS PDF] 印刷用ページに置換しました");
+
+    const triggerPrint = function(){
+        try {
+            window.focus();
+            window.print();
+        } catch(err){
+            console.error("[INIADPULS PDF] window.print() 失敗:", err);
+        }
+    };
+
+    const btn = document.getElementById("iniadpp-print-btn");
+    if(btn){
+        btn.addEventListener("click", triggerPrint);
+    }
+
+    setTimeout(triggerPrint, 800);
+}
